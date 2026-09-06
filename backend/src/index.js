@@ -12,11 +12,12 @@ const productsRoutes = require('./routes/products');
 const comparisonsRoutes = require('./routes/comparisons');
 const certificatesRoutes = require('./routes/certificates');
 const anomaliesRoutes = require('./routes/anomalies');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
 // Middleware
-const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, 'http://localhost:5173'] : '*';
+const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, 'http://localhost:5173', 'chrome-extension://*'] : '*';
 app.use(cors({ origin: allowedOrigins }));
 app.use(morgan('dev'));
 app.use(express.json());
@@ -31,6 +32,7 @@ apiRouter.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'gem-intel-backend' });
 });
 
+apiRouter.use('/auth', authRoutes);
 apiRouter.use('/compare', compareRoutes);
 apiRouter.use('/products', productsRoutes);
 apiRouter.use('/comparisons', comparisonsRoutes);

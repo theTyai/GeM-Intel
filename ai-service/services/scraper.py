@@ -2,43 +2,10 @@ import json
 import re
 import os
 import logging
-import requests
 from urllib.parse import urlparse, parse_qs
 from typing import List, Dict, Any, Optional
-from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
-
-
-def _fetch_page(url: str, timeout: int = 8) -> Optional[str]:
-    """Fetch a page via plain HTTP GET and return HTML.
-    Returns None on any error (connection refused, timeout, etc.).
-    GeM blocks most cloud-provider IPs, so failure here is expected.
-    """
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        ),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-    }
-    try:
-        resp = requests.get(url, headers=headers, timeout=timeout)
-        if resp.status_code == 200:
-            return resp.text
-        logger.warning(f"GeM returned HTTP {resp.status_code} for {url}")
-        return None
-    except requests.exceptions.ConnectionError:
-        logger.warning(f"GeM connection refused (expected on cloud IPs): {url}")
-        return None
-    except requests.exceptions.Timeout:
-        logger.warning(f"GeM request timed out after {timeout}s: {url}")
-        return None
-    except Exception as e:
-        logger.warning(f"GeM fetch failed: {e}")
-        return None
 
 
 class ProductScraper:
@@ -89,129 +56,7 @@ class ProductScraper:
             "modelSlug": model_slug
         }
 
-    def _extract_price_from_soup(self, soup: BeautifulSoup) -> float:
-        """Extract price from the HTML using multiple strategies."""
-        price = 0.0
 
-        # Strategy 1: Look for common price class names
-        price_selectors = [
-            {'class_': re.compile(r'offer.?price|pdp.?price|final.?price', re.I)},
-            {'class_': re.compile(r'price|value|offer', re.I)},
-        ]
-        for selector in price_selectors:
-            for elem in soup.find_all(['span', 'div', 'p', 'td'], **selector):
-                txt = elem.get_text(strip=True)
-                m = re.search(r'₹?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)', txt)
-                if m:
-                    val = float(m.group(1).replace(',', ''))
-                    if val > 10:  # Must be a valid price (above ₹10)
-                        price = val
-                        return price
-
-        # Strategy 2: Look for "Offer Price" text pattern
-        for text_node in soup.find_all(string=re.compile(r'offer\s*price|price.*unit', re.I)):
-            parent = text_node.parent
-            if parent:
-                sibling_text = parent.get_text(' ', strip=True)
-                m = re.search(r'₹?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)', sibling_text)
-                if m:
-                    val = float(m.group(1).replace(',', ''))
-                    if val > 10:
-                        return val
-
-        # Strategy 3: Search entire page text for ₹ symbol patterns
-        page_text = soup.get_text(' ', strip=True)
-        all_prices = re.findall(r'₹\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)', page_text)
-        if all_prices:
-            prices = [float(p.replace(',', '')) for p in all_prices if float(p.replace(',', '')) > 10]
-            if prices:
-                return min(prices)  # Return the lowest (likely offer price, not MRP)
-
-        return price
-
-    def _extract_specs_from_soup(self, soup: BeautifulSoup) -> dict:
-        """Extract ALL product specifications generically from HTML tables and key-value patterns."""
-        specs = {}
-
-        # Strategy 1: Look for specification tables (most GeM product pages have these)
-        for table in soup.find_all('table'):
-            rows = table.find_all('tr')
-            for row in rows:
-                cells = row.find_all(['td', 'th'])
-                if len(cells) >= 2:
-                    key = cells[0].get_text(strip=True).strip().rstrip(':')
-                    val = cells[1].get_text(strip=True).strip()
-                    if key and val and len(key) < 80 and len(val) < 200:
-                        # Clean the key
-                        clean_key = re.sub(r'\s+', ' ', key).strip()
-                        if clean_key and clean_key.lower() not in ('', 'specification', 'details', 'product details'):
-                            specs[clean_key] = val
-
-        # Strategy 2: Look for dl/dt/dd pairs
-        for dl in soup.find_all('dl'):
-            dts = dl.find_all('dt')
-            dds = dl.find_all('dd')
-            for dt, dd in zip(dts, dds):
-                key = dt.get_text(strip=True).strip().rstrip(':')
-                val = dd.get_text(strip=True).strip()
-                if key and val:
-                    specs[key] = val
-
-        # Strategy 3: Look for label-value div pairs
-        for label in soup.find_all(['span', 'div', 'td', 'th'], class_=re.compile(r'label|key|param|spec.?name', re.I)):
-            key = label.get_text(strip=True).strip().rstrip(':')
-            value_elem = label.find_next_sibling()
-            if value_elem:
-                val = value_elem.get_text(strip=True).strip()
-                if key and val and len(key) < 80 and len(val) < 200:
-                    specs[key] = val
-
-        # Strategy 4: Check for "Product Details" section with key-value rows
-        for section in soup.find_all(['div', 'section'], class_=re.compile(r'product.?detail|spec|feature', re.I)):
-            rows = section.find_all(['div', 'tr', 'li'])
-            for row in rows:
-                text = row.get_text(' ', strip=True)
-                # Pattern: "Key : Value" or "Key: Value"
-                kv_match = re.match(r'^([^:]{2,50})\s*:\s*(.{1,200})$', text)
-                if kv_match:
-                    specs[kv_match.group(1).strip()] = kv_match.group(2).strip()
-
-        return specs
-
-    def _extract_category_from_soup(self, soup: BeautifulSoup, category_slug: str) -> str:
-        """Extract the product category from breadcrumbs or page content."""
-        # Strategy 1: Breadcrumbs
-        breadcrumb = soup.find(['nav', 'ol', 'ul', 'div'], class_=re.compile(r'breadcrumb', re.I))
-        if breadcrumb:
-            crumbs = breadcrumb.get_text(' > ', strip=True).lower()
-            return crumbs.split('>')[-1].strip() if '>' in crumbs else crumbs
-
-        # Strategy 2: Use the category slug from the URL
-        if category_slug:
-            return category_slug
-
-        return "general"
-
-    def _extract_brand_from_soup(self, soup: BeautifulSoup, title: str) -> str:
-        """Extract brand from the page."""
-        # Strategy 1: Look for explicit brand mentions in spec tables
-        for label in soup.find_all(string=re.compile(r'brand|manufacturer|make', re.I)):
-            parent = label.parent
-            if parent:
-                sibling = parent.find_next_sibling()
-                if sibling:
-                    brand_text = sibling.get_text(strip=True)
-                    if brand_text and len(brand_text) < 50:
-                        return brand_text
-
-        # Strategy 2: Look for "(Brand)" pattern in title — common on GeM like "NA (NA)" or "Bata (Bata)"
-        brand_match = re.search(r'^([A-Za-z][A-Za-z\s&]+?)(?:\s+\(|\s+-\s+)', title)
-        if brand_match:
-            candidate = brand_match.group(1).strip()
-            if candidate.lower() not in ('unbranded', 'na', 'unknown', 'other'):
-                return candidate
-
-        return "Unbranded"
 
     def scrape_gem_product(self, gem_url: str) -> dict:
         gem_url = gem_url.strip()
@@ -228,112 +73,9 @@ class ProductScraper:
         model_slug = url_info["modelSlug"]
         category_slug = url_info["categorySlug"]
 
-        # HTTP headers for all requests
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-        }
-
-        # 3. Live Web Scraping from GeM via HTTP
-        live_data = None
-        fetched_html = _fetch_page(gem_url)
-        if fetched_html:
-            try:
-                soup = BeautifulSoup(fetched_html, 'html.parser')
-                # ---- TITLE ----
-                h1_elem = soup.find('h1')
-                title_text = h1_elem.get_text(' ', strip=True) if h1_elem else ""
-                clean_title = re.sub(r'\s+', ' ', title_text).strip()
-                if not clean_title:
-                    og_title = soup.find('meta', property='og:title')
-                    if og_title:
-                        clean_title = og_title.get('content', '').strip()
-                if not clean_title:
-                    title_tag = soup.find('title')
-                    if title_tag:
-                        clean_title = title_tag.get_text(strip=True).split('|')[0].strip()
-                # ---- PRICE ----
-                price = self._extract_price_from_soup(soup)
-                # ---- SPECS ----
-                specs = self._extract_specs_from_soup(soup)
-                # ---- BRAND ----
-                brand = self._extract_brand_from_soup(soup, clean_title)
-                # ---- CATEGORY ----
-                category = self._extract_category_from_soup(soup, category_slug)
-                # ---- MODEL ----
-                model = ""
-                model_match = re.search(r'\(([^)]+)\)', clean_title)
-                if model_match:
-                    model = model_match.group(1).strip()
-                elif model_slug:
-                    model = model_slug.title()
-                if clean_title:
-                    live_data = {
-                        "id": product_id,
-                        "title": clean_title,
-                        "brand": brand,
-                        "model": model,
-                        "category": category,
-                        "price": price if price > 0 else 0.0,
-                        "specifications": specs,
-                        "gemUrl": gem_url,
-                        "seller": "GeM Authorized OEM / Seller"
-                    }
-                    logger.info(f"Successfully parsed live GeM product: {live_data['title']} (Price: ₹{live_data['price']}, Specs: {len(specs)} fields)")
-            except Exception as e:
-                logger.warning(f"GeM HTML parse exception: {e}")
-
-        if live_data:
-            return live_data
-
-        # 4. Try GeM's internal API (product pages load data via XHR)
-        api_data = None
-        try:
-            # GeM product pages often fetch data from an API like:
-            # https://mkp.gem.gov.in/catalog/api/v1/products/{product_id}
-            if product_id and product_id != "UNKNOWN":
-                api_urls = [
-                    f"https://mkp.gem.gov.in/catalog/api/v1/products/{product_id}",
-                    f"https://mkp.gem.gov.in/api/v1/products/{product_id}",
-                ]
-                for api_url in api_urls:
-                    try:
-                        api_resp = requests.get(api_url, headers=headers, timeout=10)
-                        if api_resp.status_code == 200:
-                            api_json = api_resp.json()
-                            if isinstance(api_json, dict):
-                                api_title = api_json.get('productName') or api_json.get('title') or api_json.get('name', '')
-                                api_price = api_json.get('offerPrice') or api_json.get('price') or api_json.get('mrp', 0)
-                                api_brand = api_json.get('brand') or api_json.get('brandName', 'Unbranded')
-                                api_category = api_json.get('categoryName') or api_json.get('category', category_slug or 'general')
-                                api_specs = api_json.get('specifications') or api_json.get('technicalSpecifications') or {}
-                                
-                                if isinstance(api_specs, list):
-                                    api_specs = {s.get('name', s.get('key', '')): s.get('value', '') for s in api_specs if isinstance(s, dict)}
-                                
-                                if api_title:
-                                    api_data = {
-                                        "id": product_id,
-                                        "title": str(api_title),
-                                        "brand": str(api_brand),
-                                        "model": "",
-                                        "category": str(api_category),
-                                        "price": float(api_price) if api_price else 0.0,
-                                        "specifications": api_specs if isinstance(api_specs, dict) else {},
-                                        "gemUrl": gem_url,
-                                        "seller": "GeM Marketplace"
-                                    }
-                                    logger.info(f"Got product from GeM API: {api_data['title']} @ ₹{api_data['price']}")
-                                    break
-                    except Exception as api_err:
-                        logger.debug(f"GeM API attempt failed: {api_err}")
-                        continue
-        except Exception as e:
-            logger.error(f"GeM API fallback failed: {e}")
-
-        if api_data:
-            return api_data
+        # 3. Final fallback: Build product from URL structure (no hardcoded defaults)
+        # Note: Server-side scraping is disabled since the Chrome extension now
+        # sends pre-scraped data from the DOM directly to the backend.
 
         # 5. Final fallback: Build product from URL structure (no hardcoded defaults)
         title = f"GeM Product ({product_id})"
