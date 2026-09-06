@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeM-Intel Audit Certificate — {{ certificateId }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Arial', sans-serif;
+      font-size: 11px;
+      color: #1a1a1a;
+      background: #fff;
+      line-height: 1.5;
+    }
+    .page { width: 100%; padding: 0; }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1a3a5c 0%, #0f2744 100%);
+      color: #fff;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+    .header-left p { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+    .header-right { text-align: right; }
+    .header-right .emblem { font-size: 32px; }
+    .header-right small { display: block; font-size: 9px; opacity: 0.75; }
+
+    /* ── Section title ── */
+    .section-header {
+      background: #f0f4f8;
+      border-left: 4px solid #1a3a5c;
+      padding: 6px 12px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #1a3a5c;
+      margin: 14px 20px 8px;
+    }
+
+    /* ── Info grid ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 0 20px;
+    }
+    .info-item { display: flex; flex-direction: column; gap: 2px; }
+    .info-item label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
+    .info-item span { font-size: 11px; font-weight: 600; color: #1a1a1a; }
+
+    /* ── Status banner ── */
+    .status-banner {
+      margin: 14px 20px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: {{ statusBgColor }};
+      border: 2px solid {{ statusColor }};
+    }
+    .status-banner .status-label {
+      font-size: 16px;
+      font-weight: 800;
+      color: {{ statusColor }};
+      letter-spacing: 1px;
+    }
+    .status-banner .variance {
+      font-size: 11px;
+      color: #333;
+    }
+    .status-banner .fmv {
+      text-align: right;
+    }
+    .status-banner .fmv .fmv-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a3a5c;
+    }
+    .status-banner .fmv small { display: block; font-size: 9px; color: #666; }
+
+    /* ── Table ── */
+    table {
+      width: calc(100% - 40px);
+      margin: 0 20px;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+    th {
+      background: #1a3a5c;
+      color: #fff;
+      padding: 7px 8px;
+      text-align: left;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f9fafb; }
+    tr:hover td { background: #f0f4f8; }
+    .amount { text-align: right; font-family: monospace; }
+    .platform-tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .platform-amazon { background: #fef3c7; color: #92400e; }
+    .platform-flipkart { background: #ede9fe; color: #5b21b6; }
+    .platform-indiamart { background: #dcfce7; color: #166534; }
+
+    /* ── Hash section ── */
+    .hash-section {
+      margin: 14px 20px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .hash-text { flex: 1; }
+    .hash-text label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; display: block; margin-bottom: 4px; }
+    .hash-value {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      word-break: break-all;
+      color: #1a3a5c;
+      background: #e8f0fe;
+      padding: 4px 6px;
+      border-radius: 3px;
+    }
+    .ledger-id {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      color: #374151;
+    }
+    .qr-placeholder {
+      width: 70px;
+      height: 70px;
+      border: 2px dashed #94a3b8;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: #64748b;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin: 14px 20px;
+      padding-top: 10px;
+      border-top: 2px solid #1a3a5c;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .footer-left { font-size: 8px; color: #666; max-width: 55%; }
+    .footer-right { text-align: right; font-size: 9px; }
+    .footer-right .sig-line { border-top: 1px solid #333; padding-top: 4px; margin-top: 20px; }
+
+    /* ── Certificate ID watermark ── */
+    .cert-id-bar {
+      background: #1a3a5c;
+      color: #fff;
+      text-align: center;
+      padding: 4px;
+      font-size: 9px;
+      letter-spacing: 1px;
+    }
+
+    .gfr-badge {
+      display: inline-block;
+      background: #1a3a5c;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Certificate ID Bar -->
+  <div class="cert-id-bar">
+    AUDIT CERTIFICATE ID: {{ certificateId }} &nbsp;|&nbsp; ISSUED: {{ issuedAt }}
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>GeM-INTEL</h1>
+      <p>Advanced Price Intelligence & Procurement Audit Engine</p>
+      <p style="margin-top:6px; font-size:9px; opacity:0.7;">
+        Smart India Hackathon 2026 — SIH 1360 &nbsp;|&nbsp; Team Valeryon
+      </p>
+    </div>
+    <div class="header-right">
+      <div class="emblem">🏛️</div>
+      <small>Government of India</small>
+      <small>Ministry of Finance (GFR 2017)</small>
+    </div>
+  </div>
+
+  <!-- GFR Compliance Notice -->
+  <div style="margin: 10px 20px; font-size:9px; color:#374151; background:#fffbeb; border:1px solid #fcd34d; border-radius:4px; padding:6px 10px;">
+    <span class="gfr-badge">GFR 2017 — Rule 149</span>
+    &nbsp; This certificate documents that market price reasonableness was verified per
+    Rule 149 of the General Financial Rules, 2017, before procurement approval.
+    This document may be attached to the procurement file as compliance evidence.
+  </div>
+
+  <!-- Officer & Product Info -->
+  <div class="section-header">A. Procurement & Product Details</div>
+  <div class="info-grid">
+    <div class="info-item"><label>Procurement Officer</label><span>{{ officerName }}</span></div>
+    <div class="info-item"><label>Department / PSU</label><span>{{ officerDepartment }}</span></div>
+    <div class="info-item"><label>GeM Product Title</label><span>{{ gemProductTitle }}</span></div>
+    <div class="info-item"><label>Brand / Category</label><span>{{ gemProductBrand }} / {{ gemProductCategory }}</span></div>
+    <div class="info-item"><label>GeM Listed Price (₹)</label><span>₹{{ gemProductPrice }}</span></div>
+    <div class="info-item"><label>GeM Landed Cost (₹)</label><span>₹{{ gemLandedCost }}</span></div>
+    <div class="info-item"><label>Delivery PIN Code</label><span>{{ pinCode }}</span></div>
+    <div class="info-item"><label>GeM Listing URL</label><span style="font-size:9px; word-break:break-all;">{{ gemUrl }}</span></div>
+  </div>
+
+  <!-- Compliance Status -->
+  <div class="section-header">B. Compliance Verdict</div>
+  <div class="status-banner">
+    <div>
+      <div class="status-label">{{ statusLabel }}</div>
+      <div class="variance">Variance from Fair Market Value: <strong>{{ variancePercent }}%</strong></div>
+    </div>
+    <div class="fmv">
+      <div class="fmv-value">₹{{ fairMarketValue }}</div>
+      <small>Fair Market Value (FMV)</small>
+      <small style="margin-top:2px; font-size:8px;">Median of matched platform landed costs</small>
+    </div>
+  </div>
+
+  <!-- Matched Listings -->
+  <div class="section-header">C. Cross-Platform Price Comparison Matrix</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Matched Product Title</th>
+        <th>Similarity</th>
+        <th class="amount">Base Price (₹)</th>
+        <th class="amount">GST (₹)</th>
+        <th class="amount">Freight (₹)</th>
+        <th class="amount">AMC (₹)</th>
+        <th class="amount">Landed Cost (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each matches}}
+      <tr>
+        <td>
+          <span class="platform-tag platform-{{#if (eq platform 'AMAZON')}}amazon{{else}}{{#if (eq platform 'FLIPKART')}}flipkart{{else}}indiamart{{/if}}{{/if}}">
+            {{ platform }}
+          </span>
+        </td>
+        <td style="max-width:160px; word-break:break-word;">{{ title }}</td>
+        <td>{{ similarityScore }}%</td>
+        <td class="amount">₹{{ basePrice }}</td>
+        <td class="amount">₹{{ gst }}</td>
+        <td class="amount">₹{{ freight }}</td>
+        <td class="amount">₹{{ amc }}</td>
+        <td class="amount" style="font-weight:700;">₹{{ landedCost }}</td>
+      </tr>
+      {{/each}}
+      {{#unless matches}}
+      <tr><td colspan="8" style="text-align:center; color:#666;">No matches found</td></tr>
+      {{/unless}}
+    </tbody>
+  </table>
+
+  <!-- Tamper-Proof Hash -->
+  <div class="section-header">D. Tamper-Proof Verification</div>
+  <div class="hash-section">
+    <div class="hash-text">
+      <label>SHA-256 Content Hash</label>
+      <div class="hash-value">{{ contentHash }}</div>
+      <div style="margin-top:8px;">
+        <label>Ledger Transaction ID</label>
+        <div class="ledger-id">{{ ledgerTxId }}</div>
+      </div>
+      <div style="margin-top:8px;">
+        <label>Verification URL</label>
+        <div style="font-size:9px; color:#1a3a5c; word-break:break-all;">{{ verifyUrl }}</div>
+      </div>
+      <div style="margin-top:6px; font-size:8px; color:#666;">
+        Scan the QR code or visit the verification URL to independently confirm this certificate
+        has not been altered. Any modification to this document will produce a different hash.
+      </div>
+    </div>
+    <div class="qr-placeholder">QR<br/>Code<br/>[Verify]</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">
+      <p><strong>GeM-Intel</strong> — AI-powered procurement price intelligence platform.</p>
+      <p style="margin-top:3px;">This certificate was auto-generated at the time of the procurement decision. The hash anchors
+      this document on an append-only ledger, making it independently verifiable and tamper-evident.</p>
+      <p style="margin-top:3px; color:#9ca3af;">Generated: {{ issuedAtISO }}</p>
+    </div>
+    <div class="footer-right">
+      <div style="font-size:9px; color:#666;">Procurement Officer</div>
+      <div class="sig-line">
+        <div style="font-weight:700;">{{ officerName }}</div>
+        <div style="font-size:9px; color:#666;">{{ officerDepartment }}</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

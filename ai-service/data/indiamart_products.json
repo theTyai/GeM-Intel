@@ -1,0 +1,36 @@
+[
+  {
+    "id": "IM-101",
+    "title": "HP ProBook 440 G8 Laptop, Intel Core i5 11th Gen, 8GB RAM, 512GB SSD",
+    "brand": "HP",
+    "category": "laptop",
+    "specifications": {
+      "ram": "8gb",
+      "storage": "512gb ssd",
+      "processor": "i5"
+    },
+    "price": 53000,
+    "url": "https://indiamart.com/proddetail/IM-101",
+    "platform": "indiamart",
+    "seller": "Tech Solutions B2B",
+    "location": "Delhi",
+    "minOrderQty": 5
+  },
+  {
+    "id": "IM-102",
+    "title": "Dell Vostro 3510 i3 Laptop 4GB 1TB",
+    "brand": "Dell",
+    "category": "laptop",
+    "specifications": {
+      "ram": "4gb",
+      "storage": "1tb hdd",
+      "processor": "i3"
+    },
+    "price": 37000,
+    "url": "https://indiamart.com/proddetail/IM-102",
+    "platform": "indiamart",
+    "seller": "Wholesale IT",
+    "location": "Mumbai",
+    "minOrderQty": 10
+  }
+]

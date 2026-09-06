@@ -1,0 +1,146 @@
+[
+  {
+    "id": "GEM-101",
+    "title": "HP ProBook 440 G8 Laptop (i5, 8GB, 512GB SSD)",
+    "brand": "HP",
+    "category": "laptop",
+    "specifications": {
+      "ram": "8gb",
+      "storage": "512gb ssd",
+      "processor": "i5",
+      "warranty": "1 year"
+    },
+    "price": 61000,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-101",
+    "seller": "HP India Authorized"
+  },
+  {
+    "id": "GEM-102",
+    "title": "Dell Vostro 3510 Laptop (i3, 4GB, 1TB HDD)",
+    "brand": "Dell",
+    "category": "laptop",
+    "specifications": {
+      "ram": "4gb",
+      "storage": "1tb hdd",
+      "processor": "i3",
+      "warranty": "1 year"
+    },
+    "price": 42000,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-102",
+    "seller": "Dell Distributors"
+  },
+  {
+    "id": "GEM-103",
+    "title": "Lenovo ThinkPad E14 Laptop (i7, 16GB, 512GB SSD)",
+    "brand": "Lenovo",
+    "category": "laptop",
+    "specifications": {
+      "ram": "16gb",
+      "storage": "512gb ssd",
+      "processor": "i7",
+      "warranty": "3 years"
+    },
+    "price": 89000,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-103",
+    "seller": "Lenovo Enterprise"
+  },
+  {
+    "id": "GEM-104",
+    "title": "Canon PIXMA G2010 Printer",
+    "brand": "Canon",
+    "category": "printer",
+    "specifications": {
+      "type": "ink tank",
+      "color": "yes",
+      "warranty": "1 year"
+    },
+    "price": 11500,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-104",
+    "seller": "Canon India"
+  },
+  {
+    "id": "GEM-105",
+    "title": "Epson L3150 Printer",
+    "brand": "Epson",
+    "category": "printer",
+    "specifications": {
+      "type": "ink tank",
+      "color": "yes",
+      "wifi": "yes",
+      "warranty": "1 year"
+    },
+    "price": 10800,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-105",
+    "seller": "Epson Authorized"
+  },
+  {
+    "id": "GEM-106",
+    "title": "Samsung Galaxy A32 Mobile (4GB, 64GB)",
+    "brand": "Samsung",
+    "category": "mobile",
+    "specifications": {
+      "ram": "4gb",
+      "storage": "64gb",
+      "display": "6.4 inch",
+      "warranty": "1 year"
+    },
+    "price": 18500,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-106",
+    "seller": "Samsung Electronics"
+  },
+  {
+    "id": "GEM-107",
+    "title": "Godrej Interio Workstation Chair",
+    "brand": "Godrej",
+    "category": "furniture",
+    "specifications": {
+      "material": "fabric",
+      "type": "ergonomic",
+      "warranty": "1 year"
+    },
+    "price": 8500,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-107",
+    "seller": "Godrej & Boyce"
+  },
+  {
+    "id": "GEM-108",
+    "title": "Wipro LED Desk Lamp",
+    "brand": "Wipro",
+    "category": "furniture",
+    "specifications": {
+      "type": "LED",
+      "power": "7W",
+      "warranty": "1 year"
+    },
+    "price": 950,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-108",
+    "seller": "Wipro Enterprises"
+  },
+  {
+    "id": "GEM-109",
+    "title": "Milton Stainless Steel Water Bottle",
+    "brand": "Milton",
+    "category": "stationery",
+    "specifications": {
+      "material": "stainless steel",
+      "capacity": "1L"
+    },
+    "price": 450,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-109",
+    "seller": "Milton Distributors"
+  },
+  {
+    "id": "GEM-110",
+    "title": "Classmate Notebooks Pack of 10",
+    "brand": "Classmate",
+    "category": "stationery",
+    "specifications": {
+      "type": "ruled",
+      "pages": "172",
+      "size": "A4"
+    },
+    "price": 180,
+    "gemUrl": "https://gem.gov.in/product/view?product_id=GEM-110",
+    "seller": "ITC Limited"
+  }
+]

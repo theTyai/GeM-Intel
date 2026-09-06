@@ -1,0 +1,192 @@
+[
+  {
+    "id": "AMZ-101",
+    "title": "HP ProBook 440 G8 Notebook PC (11th Gen Core i5/ 8GB/ 512GB SSD/ Win 11)",
+    "brand": "HP",
+    "category": "laptop",
+    "specifications": {
+      "ram": "8gb",
+      "storage": "512gb ssd",
+      "processor": "i5"
+    },
+    "price": 55000,
+    "url": "https://amazon.in/dp/AMZ-101",
+    "platform": "amazon",
+    "seller": "Appario Retail",
+    "rating": 4.5,
+    "reviews": 120
+  },
+  {
+    "id": "AMZ-101b",
+    "title": "HP ProBook 440 G8 Business Laptop Intel i5",
+    "brand": "HP",
+    "category": "laptop",
+    "specifications": {
+      "ram": "8gb",
+      "storage": "512gb ssd",
+      "processor": "i5"
+    },
+    "price": 57500,
+    "url": "https://amazon.in/dp/AMZ-101b",
+    "platform": "amazon",
+    "seller": "Electronics Store",
+    "rating": 4.2,
+    "reviews": 85
+  },
+  {
+    "id": "AMZ-102",
+    "title": "Dell Vostro 15 3510 Laptop Core i3",
+    "brand": "Dell",
+    "category": "laptop",
+    "specifications": {
+      "ram": "4gb",
+      "storage": "1tb hdd",
+      "processor": "i3"
+    },
+    "price": 38500,
+    "url": "https://amazon.in/dp/AMZ-102",
+    "platform": "amazon",
+    "seller": "Appario Retail",
+    "rating": 4.0,
+    "reviews": 210
+  },
+  {
+    "id": "AMZ-103",
+    "title": "Lenovo ThinkPad E14 Gen 2 Laptop 16GB RAM 512GB SSD",
+    "brand": "Lenovo",
+    "category": "laptop",
+    "specifications": {
+      "ram": "16gb",
+      "storage": "512gb ssd",
+      "processor": "i7"
+    },
+    "price": 84000,
+    "url": "https://amazon.in/dp/AMZ-103",
+    "platform": "amazon",
+    "seller": "Lenovo Official",
+    "rating": 4.8,
+    "reviews": 45
+  },
+  {
+    "id": "AMZ-104",
+    "title": "Canon Pixma G2010 All-in-One Ink Tank Printer",
+    "brand": "Canon",
+    "category": "printer",
+    "specifications": {
+      "type": "ink tank"
+    },
+    "price": 9800,
+    "url": "https://amazon.in/dp/AMZ-104",
+    "platform": "amazon",
+    "seller": "Appario Retail",
+    "rating": 4.4,
+    "reviews": 1500
+  },
+  {
+    "id": "AMZ-105",
+    "title": "Epson EcoTank L3150 Wi-Fi All-in-One Ink Tank Printer",
+    "brand": "Epson",
+    "category": "printer",
+    "specifications": {
+      "type": "ink tank",
+      "wifi": "yes"
+    },
+    "price": 9999,
+    "url": "https://amazon.in/dp/AMZ-105",
+    "platform": "amazon",
+    "seller": "Epson Store",
+    "rating": 4.3,
+    "reviews": 2200
+  },
+  {
+    "id": "AMZ-106",
+    "title": "Samsung Galaxy A32 (Awesome Black, 64 GB) (4 GB RAM)",
+    "brand": "Samsung",
+    "category": "mobile",
+    "specifications": {
+      "ram": "4gb",
+      "storage": "64gb"
+    },
+    "price": 17500,
+    "url": "https://amazon.in/dp/AMZ-106",
+    "platform": "amazon",
+    "seller": "Darshita Electronics",
+    "rating": 4.1,
+    "reviews": 340
+  },
+  {
+    "id": "AMZ-107",
+    "title": "Godrej Interio Motion High Back Ergonomic Chair",
+    "brand": "Godrej",
+    "category": "furniture",
+    "specifications": {
+      "type": "ergonomic"
+    },
+    "price": 7900,
+    "url": "https://amazon.in/dp/AMZ-107",
+    "platform": "amazon",
+    "seller": "Godrej Interio",
+    "rating": 4.0,
+    "reviews": 120
+  },
+  {
+    "id": "AMZ-108",
+    "title": "Wipro Garnet 7W LED Table Lamp",
+    "brand": "Wipro",
+    "category": "furniture",
+    "specifications": {
+      "type": "LED",
+      "power": "7W"
+    },
+    "price": 850,
+    "url": "https://amazon.in/dp/AMZ-108",
+    "platform": "amazon",
+    "seller": "Wipro Lightings",
+    "rating": 4.5,
+    "reviews": 560
+  },
+  {
+    "id": "AMZ-109",
+    "title": "Milton Thermosteel Flip Lid Flask, 1000 ml",
+    "brand": "Milton",
+    "category": "stationery",
+    "specifications": {
+      "capacity": "1L"
+    },
+    "price": 420,
+    "url": "https://amazon.in/dp/AMZ-109",
+    "platform": "amazon",
+    "seller": "Milton Store",
+    "rating": 4.2,
+    "reviews": 890
+  },
+  {
+    "id": "AMZ-110",
+    "title": "Classmate Long Book - Unruled, 160 Pages (Pack of 6)",
+    "brand": "Classmate",
+    "category": "stationery",
+    "specifications": {
+      "type": "unruled",
+      "pages": "160"
+    },
+    "price": 110,
+    "url": "https://amazon.in/dp/AMZ-110",
+    "platform": "amazon",
+    "seller": "ITC Store",
+    "rating": 4.4,
+    "reviews": 230
+  },
+  {
+    "id": "AMZ-999",
+    "title": "Generic Unbranded Optical Mouse",
+    "brand": "Generic",
+    "category": "electronics",
+    "specifications": {},
+    "price": 150,
+    "url": "https://amazon.in/dp/AMZ-999",
+    "platform": "amazon",
+    "seller": "Random Seller",
+    "rating": 3.0,
+    "reviews": 10
+  }
+]

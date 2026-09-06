@@ -1,0 +1,29 @@
+{
+  "hsn_rates": {
+    "8471": 18,
+    "8443": 18,
+    "8517": 18,
+    "9403": 18,
+    "4820": 12,
+    "8418": 28,
+    "8516": 18,
+    "3926": 18,
+    "9608": 12,
+    "default": 18
+  },
+  "category_to_hsn": {
+    "laptop": "8471",
+    "computer": "8471",
+    "printer": "8443",
+    "mobile": "8517",
+    "phone": "8517",
+    "furniture": "9403",
+    "chair": "9403",
+    "desk": "9403",
+    "stationery": "4820",
+    "pen": "9608",
+    "refrigerator": "8418",
+    "air conditioner": "8418",
+    "default": "8471"
+  }
+}

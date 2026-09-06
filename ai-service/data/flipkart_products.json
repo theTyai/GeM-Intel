@@ -1,0 +1,53 @@
+[
+  {
+    "id": "FLIP-101",
+    "title": "HP ProBook 440 G8 Core i5 11th Gen - (8 GB/512 GB SSD/Windows 11)",
+    "brand": "HP",
+    "category": "laptop",
+    "specifications": {
+      "ram": "8gb",
+      "storage": "512gb ssd",
+      "processor": "i5"
+    },
+    "price": 54500,
+    "url": "https://flipkart.com/p/FLIP-101",
+    "platform": "flipkart",
+    "seller": "RetailNet",
+    "rating": 4.6,
+    "reviews": 140
+  },
+  {
+    "id": "FLIP-102",
+    "title": "DELL Vostro Core i3 11th Gen - (4 GB/1 TB HDD/Windows 11)",
+    "brand": "Dell",
+    "category": "laptop",
+    "specifications": {
+      "ram": "4gb",
+      "storage": "1tb hdd",
+      "processor": "i3"
+    },
+    "price": 37990,
+    "url": "https://flipkart.com/p/FLIP-102",
+    "platform": "flipkart",
+    "seller": "RetailNet",
+    "rating": 4.1,
+    "reviews": 250
+  },
+  {
+    "id": "FLIP-103",
+    "title": "Lenovo ThinkPad E14 Core i7 11th Gen - (16 GB/512 GB SSD/Windows 10 Pro)",
+    "brand": "Lenovo",
+    "category": "laptop",
+    "specifications": {
+      "ram": "16gb",
+      "storage": "512gb ssd",
+      "processor": "i7"
+    },
+    "price": 83500,
+    "url": "https://flipkart.com/p/FLIP-103",
+    "platform": "flipkart",
+    "seller": "TBL Online",
+    "rating": 4.7,
+    "reviews": 60
+  }
+]
