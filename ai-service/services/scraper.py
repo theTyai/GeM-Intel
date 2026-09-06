@@ -196,14 +196,16 @@ class ProductScraper:
         model_slug = url_info["modelSlug"]
         category_slug = url_info["categorySlug"]
 
+        # HTTP headers for all requests
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+        }
+
         # 3. Live Web Scraping from GeM
         live_data = None
         try:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.5",
-            }
             response = requests.get(gem_url, headers=headers, timeout=15)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, 'html.parser')
@@ -263,7 +265,55 @@ class ProductScraper:
         if live_data:
             return live_data
 
-        # 4. Fallback: Build product from URL structure (no hardcoded laptop defaults)
+        # 4. Try GeM's internal API (product pages load data via XHR)
+        api_data = None
+        try:
+            # GeM product pages often fetch data from an API like:
+            # https://mkp.gem.gov.in/catalog/api/v1/products/{product_id}
+            if product_id and product_id != "UNKNOWN":
+                api_urls = [
+                    f"https://mkp.gem.gov.in/catalog/api/v1/products/{product_id}",
+                    f"https://mkp.gem.gov.in/api/v1/products/{product_id}",
+                ]
+                for api_url in api_urls:
+                    try:
+                        api_resp = requests.get(api_url, headers=headers, timeout=10)
+                        if api_resp.status_code == 200:
+                            api_json = api_resp.json()
+                            if isinstance(api_json, dict):
+                                api_title = api_json.get('productName') or api_json.get('title') or api_json.get('name', '')
+                                api_price = api_json.get('offerPrice') or api_json.get('price') or api_json.get('mrp', 0)
+                                api_brand = api_json.get('brand') or api_json.get('brandName', 'Unbranded')
+                                api_category = api_json.get('categoryName') or api_json.get('category', category_slug or 'general')
+                                api_specs = api_json.get('specifications') or api_json.get('technicalSpecifications') or {}
+                                
+                                if isinstance(api_specs, list):
+                                    api_specs = {s.get('name', s.get('key', '')): s.get('value', '') for s in api_specs if isinstance(s, dict)}
+                                
+                                if api_title:
+                                    api_data = {
+                                        "id": product_id,
+                                        "title": str(api_title),
+                                        "brand": str(api_brand),
+                                        "model": "",
+                                        "category": str(api_category),
+                                        "price": float(api_price) if api_price else 0.0,
+                                        "specifications": api_specs if isinstance(api_specs, dict) else {},
+                                        "gemUrl": gem_url,
+                                        "seller": "GeM Marketplace"
+                                    }
+                                    logger.info(f"Got product from GeM API: {api_data['title']} @ ₹{api_data['price']}")
+                                    break
+                    except Exception as api_err:
+                        logger.debug(f"GeM API attempt failed: {api_err}")
+                        continue
+        except Exception as e:
+            logger.error(f"GeM API fallback failed: {e}")
+
+        if api_data:
+            return api_data
+
+        # 5. Final fallback: Build product from URL structure (no hardcoded defaults)
         title = f"GeM Product ({product_id})"
         category = category_slug or "general"
         brand = "Unknown"
@@ -272,7 +322,6 @@ class ProductScraper:
         if model_slug:
             model = model_slug.title()
             title = f"{model_slug.title()} - {category_slug.title() if category_slug else 'Product'}"
-            # Try to infer brand from model slug
             known_brands = ["acer", "hp", "dell", "lenovo", "canon", "bata", "liberty", "samsung", "lg", "epson", "brother"]
             for kb in known_brands:
                 if kb in model_slug.lower():
@@ -329,7 +378,7 @@ class ProductScraper:
         if target_price > 0 and target_title:
             return self._synthesize_generic_evidence(platform, target_product)
 
-        return catalog
+        return []  # Never dump unrelated mock catalog as evidence
 
     def _synthesize_acer_travellite(self, platform: str) -> list:
         """Hardcoded demo data for the Acer TravelLite laptop (SIH demo product)."""
