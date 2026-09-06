@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -11,7 +12,14 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title='GeM-Intel AI Service')
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    port = os.getenv("PORT", "8000")
+    logger.info(f"GeM-Intel AI Service starting on port {port}")
+    yield
+
+app = FastAPI(title='GeM-Intel AI Service', lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,11 +34,13 @@ app.include_router(match.router)
 app.include_router(tco.router)
 app.include_router(anomaly.router)
 
+
+@app.get("/")
+def root():
+    """Root endpoint – doubles as Render's health-check target."""
+    return {"status": "ok", "service": "gem-intel-ai", "docs": "/docs"}
+
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "gem-intel-ai"}
-
-@app.on_event("startup")
-async def startup_event():
-    port = os.getenv("PORT", "8000")
-    logger.info(f"GeM-Intel AI Service starting on port {port}")

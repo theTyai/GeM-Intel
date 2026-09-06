@@ -207,7 +207,7 @@ GeM/
 ## Mock Data vs Live Scraping
 
 - By default `USE_MOCK_DATA=true` in `.env` — all marketplace data comes from `ai-service/data/*.json`
-- Set `USE_MOCK_DATA=false` to enable real Playwright scrapers (requires DaaS API keys for anti-bot bypassing)
+- Set `USE_MOCK_DATA=false` to enable real web scrapers (requires DaaS API keys for anti-bot bypassing)
 - The matching engine, TCO normalizer and anomaly detector work identically in both modes
 
 ---
@@ -220,6 +220,5 @@ GeM/
 - [ ] Phase 4: PDF Service (certificate generation + SHA-256 hash)
 - [ ] Phase 5: Frontend (React dashboard + comparison UI)
 - [ ] Phase 6: Chrome Extension
-- [ ] Phase 7: Real scraping (Playwright + DaaS)
+- [ ] Phase 7: Real scraping (DaaS)
 - [ ] Phase 8: BullMQ/Redis async queue (Stage B)
-- [ ] Phase 9: Docker Compose deployment

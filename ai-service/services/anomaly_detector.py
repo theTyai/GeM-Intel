@@ -1,5 +1,6 @@
 import math
 import random
+import warnings
 from typing import List, Dict, Any
 
 try:
@@ -23,15 +24,17 @@ class AnomalyDetector:
     def fit_arima(self, price_series: List[float]) -> Dict:
         if ARIMA is not None and len(price_series) > 10:
             try:
-                model = ARIMA(price_series, order=(2, 1, 2))
-                res = model.fit()
-                forecast = res.forecast(steps=1).iloc[0]
-                return {
-                    "forecast": forecast,
-                    "lower_bound": forecast * 0.95,
-                    "upper_bound": forecast * 1.05
-                }
-            except:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    model = ARIMA(price_series, order=(1, 1, 0))
+                    res = model.fit()
+                    forecast = res.forecast(steps=1).iloc[0]
+                    return {
+                        "forecast": forecast,
+                        "lower_bound": forecast * 0.95,
+                        "upper_bound": forecast * 1.05
+                    }
+            except Exception:
                 pass
                 
         # Fallback simple moving average
