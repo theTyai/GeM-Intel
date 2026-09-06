@@ -1,101 +1,225 @@
-# 🏛️ GeM-Intel — AI-Powered Procurement Intelligence & Auditability Platform
+# GeM-Intel
 
-**Smart India Hackathon 2026 | Problem Statement: SIH 1360**  
-**Team Valeryon**
-
-> **An evidence-driven decision-support system for establishing price reasonableness, detecting procurement risk, and generating independently verifiable audit evidence under GFR 2017 Rule 149.**
-
----
-
-## 🏛️ The Six Core Product Pillars
-
-1. **01 — Price Intelligence**: Cross-market benchmarking and delivered Total Cost of Ownership (TCO) normalization (GST + PIN-code freight + AMC).
-2. **02 — Product Intelligence**: AI-powered product identity resolution and hard-attribute specification cross-checking.
-3. **03 — Risk Intelligence**: Benchmark Market Value (BMV) variance, ARIMA time-series boundaries, and procurement risk signals.
-4. **04 — Evidence Intelligence**: Timestamped, traceable market evidence snapshots with verified provenance.
-5. **05 — Auditability**: Cryptographically verifiable procurement certificates anchored with SHA-256 hashes to a tamper-evident audit ledger.
-6. **06 — Human Governance**: AI assists, recommends, and explains; authorized procurement officers retain final statutory decision authority.
+**Advanced Price Intelligence & Procurement Audit Engine**  
+Smart India Hackathon 2026 — Problem Statement SIH 1360  
+Team Valeryon
 
 ---
 
-## 🏗️ Architecture Overview
+## What is GeM-Intel?
 
-```text
-                    ┌──────────────────────────────┐
-                    │       GOVERNMENT USERS       │
-                    │                              │
-                    │ Officer │ Auditor │ Admin    │
-                    └──────────────┬───────────────┘
-                                   │
-                         Web Dashboard / Extension
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │       API GATEWAY             │
-                    │ Auth │ RBAC │ Rate Limiting  │
-                    │ Audit Logging │ Validation   │
-                    └──────────────┬───────────────┘
-                                   │
-              ┌────────────────────┼────────────────────┐
-              │                    │                    │
-              ▼                    ▼                    ▼
-       Procurement           Intelligence          Evidence
-          Engine                Engine               Engine
-              │                    │                    │
-       ┌──────┴──────┐      ┌──────┴──────┐      ┌──────┴──────┐
-       │ GeM Parser  │      │ NLP Matcher │      │ Certificate │
-       │ Product     │      │ TCO Engine  │      │ SHA-256     │
-       │ Extraction  │      │ Anomaly/Risk│      │ QR Verify   │
-       └─────────────┘      │ Detection   │      │ Audit Ledger│
-                            └─────────────┘      └─────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │       DATA PLATFORM          │
-                    │                              │
-                    │ MongoDB │ Price History      │
-                    │ Evidence Store │ Audit Logs  │
-                    └──────────────────────────────┘
+GeM-Intel benchmarks prices on India's Government e-Marketplace (GeM) against Amazon, Flipkart, and IndiaMART in near real-time. It automatically matches products across platforms using semantic AI, normalizes prices to a true landed cost (GST + freight + AMC), and generates a tamper-proof audit certificate as GFR Rule 149 compliance evidence.
+
+---
+
+## Architecture
+
+```
+React (port 5173)
+    │
+    ▼
+Node.js / Express (port 5000)
+    │
+    ├──► MongoDB (port 27017)
+    │
+    ├──► Python / FastAPI AI Service (port 8000)
+    │         ├── Scraper (GeM parser + mock marketplaces)
+    │         ├── Semantic Matcher (TF-IDF + Sentence-Transformers)
+    │         ├── TCO Normalizer (GST + freight + AMC)
+    │         └── Anomaly Detector (ARIMA/Prophet)
+    │
+    └──► PDF Service (port 5001)
+              └── Puppeteer certificate generator
 ```
 
 ---
 
-## ⚡ Quick Start
+## Prerequisites
 
-### 1. Launch All Services (One-Click on Windows)
-Double click:
-```bat
-d:\WorkSpace\GeM\start-all.bat
-```
+| Tool | Version | Install | 
+|------|---------|---------|
+| Node.js | 18+ | https://nodejs.org |
+| Python | 3.10+ | https://python.org |
+| MongoDB | 7.0+ | https://www.mongodb.com/try/download/community |
+| Git | any | https://git-scm.com |
 
-### 2. Manual Startup
+> **Windows users**: MongoDB can be installed as a Windows service. Alternatively use MongoDB Atlas (free tier) and update `MONGODB_URI` in your `.env`.
+
+---
+
+## Quick Start
+
+### 1. Clone & configure environment
+
 ```bash
-# Terminal 1 — AI Intelligence Core (Port 8000)
-cd ai-service
-python -m uvicorn main:app --reload --port 8000
+# From the GeM directory
+cp .env.example .env
+# Edit .env if needed (defaults work for local dev)
+```
 
-# Terminal 2 — Backend API Gateway (Port 5000)
+### 2. Start MongoDB
+
+Make sure MongoDB is running on `localhost:27017`.
+
+```bash
+# Windows (if installed as service, it may already be running)
+# Check: net start MongoDB
+# Or use MongoDB Compass to connect to localhost:27017
+```
+
+### 3. Start the Backend
+
+```bash
 cd backend
-node src/index.js
+npm install
+npm run seed          # creates test users
+npm run dev           # starts on port 5000
+```
 
-# Terminal 3 — Frontend Dashboard (Port 5173)
+### 4. Start the AI Service
+
+```bash
+cd ai-service
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+### 5. Start the PDF Service
+
+```bash
+cd pdf-service
+npm install
+npm run dev           # starts on port 5001
+```
+
+### 6. Start the Frontend
+
+```bash
 cd frontend
-npm run dev
+npm install
+npm run dev           # starts on port 5173
 ```
 
 ---
 
-## 🔑 Demo Government User Accounts
+## Test Users (after seeding)
 
-| Role | Email | Password | Department | Access Level |
-|---|---|---|---|---|
-| **Procurement Officer** | `officer@gem.gov.in` | `password123` | Ministry of Finance | Benchmark Quotations, Generate GFR 149 Certificates |
-| **Government Auditor** | `auditor@gem.gov.in` | `password123` | CAG Office | Risk & Market Intelligence Hub, Audit Logs |
-| **GeM Administrator** | `admin@gem.gov.in` | `password123` | GeM Administration | Full System Diagnostics & Monitoring |
+| Role | Email | Password |
+|------|-------|----------|
+| Officer | officer@gem.gov.in | password123 |
+| Auditor | auditor@gem.gov.in | password123 |
+| Admin | admin@gem.gov.in | password123 |
 
 ---
 
-## 📄 Documentation
+## First Milestone — Comparison API
 
-- Comprehensive Guide: [`SYSTEM_OVERVIEW_AND_USER_FLOW.md`](SYSTEM_OVERVIEW_AND_USER_FLOW.md)
-- Walkthrough: [`walkthrough.md`](walkthrough.md)
+Test the core comparison endpoint directly:
+
+```bash
+# 1. Get a JWT token
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"officer@gem.gov.in","password":"password123"}'
+
+# 2. Copy the token, then run a comparison
+curl -X POST http://localhost:5000/api/v1/compare \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"gemUrl":"https://gem.gov.in/product/view?product_id=GEM-2024-HP-001","pinCode":"110001"}'
+```
+
+Expected response shape:
+```json
+{
+  "gemProduct": { "title": "HP ProBook 440 G8", "price": 61000 },
+  "matches": [...],
+  "fairMarketValue": 55750,
+  "variancePercent": 9.42,
+  "status": "review_required"
+}
+```
+
+---
+
+## Project Structure
+
+```
+GeM/
+├── backend/              # Node.js / Express API gateway (port 5000)
+│   ├── src/
+│   │   ├── config/       # DB connections
+│   │   ├── middleware/   # JWT auth + RBAC
+│   │   ├── models/       # Mongoose schemas
+│   │   ├── routes/       # API route handlers
+│   │   ├── services/     # GeM URL parser
+│   │   └── scripts/      # DB seed script
+│   └── package.json
+│
+├── ai-service/           # Python / FastAPI intelligence core (port 8000)
+│   ├── routers/          # FastAPI route handlers
+│   ├── services/         # Scraper, Matcher, TCO, Anomaly
+│   ├── data/             # Mock product catalogs + HSN/GST tables
+│   ├── main.py
+│   └── requirements.txt
+│
+├── pdf-service/          # Node.js / Puppeteer certificate generator (port 5001)
+│   ├── src/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── templates/
+│   └── package.json
+│
+├── frontend/             # React / Vite dashboard (port 5173)
+│   └── src/
+│       ├── pages/
+│       ├── components/
+│       ├── api/
+│       └── context/
+│
+├── extension/            # Chrome Extension (Manifest V3)
+│
+├── .env.example          # Environment template
+└── README.md
+```
+
+---
+
+## API Reference
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/v1/auth/login` | Public | Get JWT token |
+| POST | `/api/v1/auth/register` | Public | Create user (dev only) |
+| POST | `/api/v1/compare` | Officer | Run a price comparison |
+| GET | `/api/v1/compare/:id` | Officer | Get comparison result |
+| GET | `/api/v1/products/:id` | Officer, Auditor | Get GeM product |
+| GET | `/api/v1/comparisons` | Officer, Auditor | List comparisons |
+| GET | `/api/v1/comparisons/:id` | Officer, Auditor | Get comparison detail |
+| POST | `/api/v1/certificates/:comparisonId` | Officer | Generate audit certificate |
+| GET | `/api/v1/certificates/:id` | Officer, Auditor | Download certificate |
+| GET | `/api/v1/certificates/:id/verify` | Public | Verify certificate hash |
+| GET | `/api/v1/anomalies` | Auditor, Admin | List flagged products |
+| GET | `/api/v1/health` | Public | Health check |
+
+---
+
+## Mock Data vs Live Scraping
+
+- By default `USE_MOCK_DATA=true` in `.env` — all marketplace data comes from `ai-service/data/*.json`
+- Set `USE_MOCK_DATA=false` to enable real Playwright scrapers (requires DaaS API keys for anti-bot bypassing)
+- The matching engine, TCO normalizer and anomaly detector work identically in both modes
+
+---
+
+## Roadmap
+
+- [x] Phase 1: Foundation (project structure, env, README)
+- [x] Phase 2: Backend (Express + MongoDB + JWT + all routes)
+- [x] Phase 3: AI Service (scraper + matcher + TCO + anomaly)
+- [ ] Phase 4: PDF Service (certificate generation + SHA-256 hash)
+- [ ] Phase 5: Frontend (React dashboard + comparison UI)
+- [ ] Phase 6: Chrome Extension
+- [ ] Phase 7: Real scraping (Playwright + DaaS)
+- [ ] Phase 8: BullMQ/Redis async queue (Stage B)
+- [ ] Phase 9: Docker Compose deployment
