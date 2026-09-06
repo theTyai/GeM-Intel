@@ -1,88 +1,114 @@
-// Popup logic for GeM-Intel Extension
+// GeM-Intel Extension — Popup Logic
+// Handles login/logout and stores JWT in chrome.storage
+
+const API_BASE = 'https://gem-intel.onrender.com/api/v1';
+// const API_BASE = 'http://localhost:5000/api/v1'; // uncomment for local dev
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const gemUrlInput = document.getElementById('gemUrlInput');
-  const pinInput = document.getElementById('pinInput');
-  const auditBtn = document.getElementById('auditBtn');
-  const dashBtn = document.getElementById('dashBtn');
-  const spinner = document.getElementById('loadingSpinner');
-  const resultBox = document.getElementById('resultBox');
-  const statusBadge = document.getElementById('statusBadge');
-  const gemPriceText = document.getElementById('gemPriceText');
-  const fmvText = document.getElementById('fmvText');
-  const varText = document.getElementById('varText');
+  const loginView = document.getElementById('loginView');
+  const loggedInView = document.getElementById('loggedInView');
+  const statusMsg = document.getElementById('statusMsg');
 
-  // Auto-detect current active tab URL
-  if (chrome.tabs) {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab && tab.url) {
-      gemUrlInput.value = tab.url;
-    }
+  // Check if already logged in
+  const stored = await getStorage(['gem_intel_token', 'gem_intel_user']);
+
+  if (stored.gem_intel_token && stored.gem_intel_user) {
+    showLoggedIn(stored.gem_intel_user);
   } else {
-    gemUrlInput.value = 'https://gem.gov.in/product/view?product_id=GEM-101';
+    showLogin();
   }
 
-  dashBtn.addEventListener('click', () => {
-    const currentUrl = encodeURIComponent(gemUrlInput.value || '');
-    const pin = encodeURIComponent(pinInput.value || '110001');
-    chrome.tabs.create({ url: `http://localhost:5173/?url=${currentUrl}&pin=${pin}` });
-  });
+  // ─── Login ───
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
 
-  auditBtn.addEventListener('click', async () => {
-    const gemUrl = gemUrlInput.value.trim();
-    const pinCode = pinInput.value.trim() || '110001';
-
-    if (!gemUrl) {
-      alert('Please provide a GeM Product URL');
+    if (!email || !password) {
+      showStatus('Please enter email and password', 'error');
       return;
     }
 
-    spinner.style.display = 'block';
-    resultBox.style.display = 'none';
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Signing in...';
 
     try {
-      // First get a token with default officer demo credentials
-      const loginRes = await fetch('http://localhost:5000/api/v1/auth/login', {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'officer@gem.gov.in', password: 'password123' })
+        body: JSON.stringify({ email, password }),
       });
-      const loginData = await loginRes.json();
-      const token = loginData.token;
 
-      // Run comparison
-      const compRes = await fetch('http://localhost:5000/api/v1/compare', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ gemUrl, pinCode })
-      });
-      const compData = await compRes.json();
+      const data = await res.json();
 
-      spinner.style.display = 'none';
-      resultBox.style.display = 'block';
-
-      // Update UI
-      const gemPrice = compData.gemProductId?.priceHistory?.[0]?.price || compData.fairMarketValue * (1 + compData.variancePercent/100);
-      gemPriceText.textContent = `₹${Math.round(gemPrice).toLocaleString('en-IN')}`;
-      fmvText.textContent = `₹${Math.round(compData.fairMarketValue).toLocaleString('en-IN')}`;
-      varText.textContent = `${compData.variancePercent >= 0 ? '+' : ''}${compData.variancePercent.toFixed(1)}%`;
-
-      if (compData.status === 'compliant') {
-        statusBadge.className = 'status-tag tag-compliant';
-        statusBadge.textContent = 'COMPLIANT (≤5%)';
-      } else if (compData.status === 'review_required') {
-        statusBadge.className = 'status-tag tag-review';
-        statusBadge.textContent = 'REVIEW REQUIRED (5-20%)';
-      } else {
-        statusBadge.className = 'status-tag tag-non-compliant';
-        statusBadge.textContent = 'NON-COMPLIANT (>20%)';
+      if (!res.ok) {
+        throw new Error(data.error || 'Login failed');
       }
+
+      // Store token and user info
+      await setStorage({
+        gem_intel_token: data.token,
+        gem_intel_user: data.user,
+      });
+
+      showStatus('Signed in successfully!', 'success');
+      showLoggedIn(data.user);
     } catch (err) {
-      spinner.style.display = 'none';
-      alert('Failed to connect to GeM-Intel Backend at http://localhost:5000');
+      showStatus(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔐 Sign In';
     }
   });
+
+  // ─── Dashboard ───
+  document.getElementById('dashBtn').addEventListener('click', () => {
+    chrome.tabs.create({ url: API_BASE.replace('/api/v1', '') });
+  });
+
+  // ─── Logout ───
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await removeStorage(['gem_intel_token', 'gem_intel_user']);
+    showStatus('Signed out', 'success');
+    showLogin();
+  });
+
+  // ─── Helpers ───
+  function showLogin() {
+    loginView.style.display = '';
+    loggedInView.style.display = 'none';
+  }
+
+  function showLoggedIn(user) {
+    loginView.style.display = 'none';
+    loggedInView.style.display = '';
+    document.getElementById('userName').textContent = user.name || user.email;
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('userRole').textContent = user.role || 'officer';
+  }
+
+  function showStatus(msg, type) {
+    statusMsg.textContent = msg;
+    statusMsg.className = `status-msg status-${type}`;
+    setTimeout(() => { statusMsg.style.display = 'none'; statusMsg.className = 'status-msg'; }, 4000);
+  }
 });
+
+// ─── Chrome Storage Wrappers ───
+function getStorage(keys) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(keys, resolve);
+  });
+}
+
+function setStorage(items) {
+  return new Promise((resolve) => {
+    chrome.storage.local.set(items, resolve);
+  });
+}
+
+function removeStorage(keys) {
+  return new Promise((resolve) => {
+    chrome.storage.local.remove(keys, resolve);
+  });
+}

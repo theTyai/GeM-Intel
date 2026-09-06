@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "GeM-Intel — Procurement Price Intelligence",
-  "version": "1.0.0",
-  "description": "Real-time GFR Rule 149 price benchmark and audit intelligence for Government e-Marketplace (GeM)",
+  "version": "2.0.0",
+  "description": "Real-time GFR Rule 149 price benchmark and audit intelligence for Government e-Marketplace (GeM). Works like BuyHatke — automatically analyzes pricing on GeM product pages.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -17,15 +17,20 @@
     "storage"
   ],
   "host_permissions": [
+    "https://mkp.gem.gov.in/*",
+    "https://gem.gov.in/*",
     "http://localhost:5000/*",
-    "https://gem.gov.in/*"
+    "https://gem-intel.onrender.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://gem.gov.in/*", "*://localhost/*"],
+      "matches": [
+        "https://mkp.gem.gov.in/*",
+        "https://gem.gov.in/*"
+      ],
       "js": ["content.js"],
       "css": ["styles.css"],
-      "run_at": "document_end"
+      "run_at": "document_idle"
     }
   ]
 }

@@ -3,30 +3,54 @@ const axios = require('axios');
 const GemProduct = require('../models/GemProduct');
 const Comparison = require('../models/Comparison');
 const { isValidGemUrl } = require('../services/gemParser');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
-router.post('/', async (req, res) => {
-  const { gemUrl, pinCode } = req.body;
-  if (!gemUrl) {
-    return res.status(400).json({ error: 'gemUrl is required' });
-  }
+// Apply auth middleware — user must be logged in
+router.use(authenticate);
 
-  // Validate URL (or allow all in dev)
-  if (!isValidGemUrl(gemUrl) && process.env.NODE_ENV !== 'development') {
-    return res.status(400).json({ error: 'Invalid GeM URL' });
+router.post('/', async (req, res) => {
+  const { gemUrl, gemProduct: clientProduct, pinCode } = req.body;
+
+  // Extension sends pre-scraped product data; legacy callers send gemUrl
+  if (!clientProduct && !gemUrl) {
+    return res.status(400).json({ error: 'Either gemProduct (extension) or gemUrl (legacy) is required' });
   }
 
   try {
-    // 1. Scrape GeM Product
-    const scrapeRes = await axios.post(`${AI_SERVICE_URL}/scrape`, {
-      gem_url: gemUrl,
-      pin_code: pinCode,
-    });
-    const scrapedData = scrapeRes.data.data;
+    let scrapedData;
 
-    let gemProduct = await GemProduct.findOne({ gemUrl });
+    if (clientProduct && clientProduct.title) {
+      // ── Extension path: product already scraped from user's browser ──
+      scrapedData = {
+        id: clientProduct.id || clientProduct.variantId || 'EXT-' + Date.now(),
+        title: clientProduct.title,
+        brand: clientProduct.brand || 'Unbranded',
+        model: clientProduct.model || '',
+        category: clientProduct.category || 'general',
+        price: clientProduct.price || 0,
+        specifications: clientProduct.specifications || {},
+        gemUrl: clientProduct.gemUrl || gemUrl || '',
+        seller: clientProduct.seller || 'GeM Marketplace',
+      };
+    } else {
+      // ── Legacy path: server-side scrape via AI service ──
+      if (!isValidGemUrl(gemUrl) && process.env.NODE_ENV !== 'development') {
+        return res.status(400).json({ error: 'Invalid GeM URL' });
+      }
+      const scrapeRes = await axios.post(`${AI_SERVICE_URL}/scrape`, {
+        gem_url: gemUrl,
+        pin_code: pinCode,
+      });
+      scrapedData = scrapeRes.data.data;
+    }
+
+    const productGemUrl = scrapedData.gemUrl || gemUrl || '';
+
+    // Upsert GeM Product in DB
+    let gemProduct = await GemProduct.findOne({ gemUrl: productGemUrl });
     if (gemProduct) {
       gemProduct.title = scrapedData.title;
       gemProduct.brand = scrapedData.brand;
@@ -40,7 +64,7 @@ router.post('/', async (req, res) => {
       await gemProduct.save();
     } else {
       gemProduct = new GemProduct({
-        gemUrl,
+        gemUrl: productGemUrl,
         title: scrapedData.title,
         brand: scrapedData.brand,
         category: scrapedData.category,
@@ -144,7 +168,8 @@ router.post('/', async (req, res) => {
     // 5. Save Comparison Record
     const comparison = new Comparison({
       gemProductId: gemProduct._id,
-      pinCode,
+      requestedBy: req.user._id,
+      pinCode: pinCode || '110001',
       matches: flatMatches,
       benchmarkMarketValue: bmv,
       fairMarketValue: bmv,
@@ -182,3 +207,4 @@ router.get('/:jobId', async (req, res) => {
 });
 
 module.exports = router;
+
