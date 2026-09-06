@@ -19,7 +19,7 @@ def _render_page(url: str, timeout: int = 15) -> Optional[str]:
 
 import json
 import re
-import logging
+import os
 from urllib.parse import urlparse, parse_qs
 from bs4 import BeautifulSoup
 import requests
