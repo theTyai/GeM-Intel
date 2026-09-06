@@ -1,4 +1,15 @@
+import json
+import re
+import os
+import logging
+import requests
+from urllib.parse import urlparse, parse_qs
+from typing import List, Dict, Any, Optional
+from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
+
+logger = logging.getLogger(__name__)
+
 
 def _render_page(url: str, timeout: int = 15) -> Optional[str]:
     """Render a JavaScript‑heavy page using Playwright and return the HTML.
@@ -17,15 +28,6 @@ def _render_page(url: str, timeout: int = 15) -> Optional[str]:
         logger.error(f"Playwright render failed for {url}: {e}")
         return None
 
-import json
-import re
-import os
-from urllib.parse import urlparse, parse_qs
-from bs4 import BeautifulSoup
-import requests
-from typing import List, Dict, Any, Optional
-
-logger = logging.getLogger(__name__)
 
 class ProductScraper:
     def __init__(self):
