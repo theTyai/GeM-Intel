@@ -1,4 +1,22 @@
-import os
+from playwright.sync_api import sync_playwright
+
+def _render_page(url: str, timeout: int = 15) -> Optional[str]:
+    """Render a JavaScript‑heavy page using Playwright and return the HTML.
+    Returns None on any error.
+    """
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context()
+            page = context.new_page()
+            page.goto(url, timeout=timeout * 1000, wait_until="networkidle")
+            html = page.content()
+            browser.close()
+            return html
+    except Exception as e:
+        logger.error(f"Playwright render failed for {url}: {e}")
+        return None
+
 import json
 import re
 import logging
@@ -203,20 +221,17 @@ class ProductScraper:
             "Accept-Language": "en-US,en;q=0.5",
         }
 
-        # 3. Live Web Scraping from GeM
+        # 3. Live Web Scraping from GeM (using Playwright first)
         live_data = None
-        try:
-            response = requests.get(gem_url, headers=headers, timeout=15)
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.content, 'html.parser')
-                page_text = soup.get_text(' ', strip=True)
-
+        # Try rendering with Playwright (handles JS)
+        rendered_html = _render_page(gem_url)
+        if rendered_html:
+            try:
+                soup = BeautifulSoup(rendered_html, 'html.parser')
                 # ---- TITLE ----
                 h1_elem = soup.find('h1')
                 title_text = h1_elem.get_text(' ', strip=True) if h1_elem else ""
                 clean_title = re.sub(r'\s+', ' ', title_text).strip()
-
-                # If no h1, try meta og:title or <title> tag
                 if not clean_title:
                     og_title = soup.find('meta', property='og:title')
                     if og_title:
@@ -225,19 +240,14 @@ class ProductScraper:
                     title_tag = soup.find('title')
                     if title_tag:
                         clean_title = title_tag.get_text(strip=True).split('|')[0].strip()
-
                 # ---- PRICE ----
                 price = self._extract_price_from_soup(soup)
-
-                # ---- SPECS (generic) ----
+                # ---- SPECS ----
                 specs = self._extract_specs_from_soup(soup)
-
                 # ---- BRAND ----
                 brand = self._extract_brand_from_soup(soup, clean_title)
-
                 # ---- CATEGORY ----
                 category = self._extract_category_from_soup(soup, category_slug)
-
                 # ---- MODEL ----
                 model = ""
                 model_match = re.search(r'\(([^)]+)\)', clean_title)
@@ -245,7 +255,6 @@ class ProductScraper:
                     model = model_match.group(1).strip()
                 elif model_slug:
                     model = model_slug.title()
-
                 if clean_title:
                     live_data = {
                         "id": product_id,
@@ -258,10 +267,57 @@ class ProductScraper:
                         "gemUrl": gem_url,
                         "seller": "GeM Authorized OEM / Seller"
                     }
-                    logger.info(f"Successfully parsed live GeM product: {live_data['title']} (Price: ₹{live_data['price']}, Specs: {len(specs)} fields)")
+                    logger.info(f"Successfully rendered and parsed GeM product: {live_data['title']} (Price: ₹{live_data['price']}, Specs: {len(specs)} fields)")
+                # If rendering succeeded we can skip the requests fallback
+                if live_data:
+                    return live_data
+            except Exception as e:
+                logger.error(f"Playwright scrape exception: {e}")
+        # Fallback: plain HTTP GET (no JS)
+        try:
+            response = requests.get(gem_url, headers=headers, timeout=15)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                page_text = soup.get_text(' ', strip=True)
+                # Reuse same extraction logic as before (title, price, specs)
+                h1_elem = soup.find('h1')
+                title_text = h1_elem.get_text(' ', strip=True) if h1_elem else ""
+                clean_title = re.sub(r'\s+', ' ', title_text).strip()
+                if not clean_title:
+                    og_title = soup.find('meta', property='og:title')
+                    if og_title:
+                        clean_title = og_title.get('content', '').strip()
+                if not clean_title:
+                    title_tag = soup.find('title')
+                    if title_tag:
+                        clean_title = title_tag.get_text(strip=True).split('|')[0].strip()
+                price = self._extract_price_from_soup(soup)
+                specs = self._extract_specs_from_soup(soup)
+                brand = self._extract_brand_from_soup(soup, clean_title)
+                category = self._extract_category_from_soup(soup, category_slug)
+                model = ""
+                model_match = re.search(r'\(([^)]+)\)', clean_title)
+                if model_match:
+                    model = model_match.group(1).strip()
+                elif model_slug:
+                    model = model_slug.title()
+                if clean_title:
+                    live_data = {
+                        "id": product_id,
+                        "title": clean_title,
+                        "brand": brand,
+                        "model": model,
+                        "category": category,
+                        "price": price if price > 0 else 0.0,
+                        "specifications": specs,
+                        "gemUrl": gem_url,
+                        "seller": "GeM Authorized OEM / Seller"
+                    }
+                    logger.info(f"Successfully parsed live GeM product via HTTP: {live_data['title']} (Price: ₹{live_data['price']}, Specs: {len(specs)} fields)")
+            # end if status
         except Exception as e:
-            logger.error(f"Live GeM scrape exception: {e}")
-
+            logger.error(f"Live GeM scrape exception (HTTP fallback): {e}")
+        # If we got live_data from either path, return it
         if live_data:
             return live_data
 
