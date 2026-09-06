@@ -11,7 +11,7 @@ class ScrapeRequest(BaseModel):
     pin_code: Optional[str] = None
 
 @router.post("")
-async def scrape_gem(req: ScrapeRequest):
+def scrape_gem(req: ScrapeRequest):
     data = scraper.scrape_gem_product(req.gem_url)
     return {"status": "success", "data": data}
 
