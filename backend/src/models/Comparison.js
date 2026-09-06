@@ -32,7 +32,7 @@ const matchItemSchema = new mongoose.Schema({
 const comparisonSchema = new mongoose.Schema({
   procurementRef: { type: String, default: () => `PR-2026-${Math.floor(1000 + Math.random() * 9000)}` },
   gemProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'GemProduct', required: true },
-  requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   pinCode: { type: String, required: true },
   matches: [matchItemSchema],
   benchmarkMarketValue: Number,

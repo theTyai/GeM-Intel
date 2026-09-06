@@ -3,13 +3,9 @@ const axios = require('axios');
 const GemProduct = require('../models/GemProduct');
 const Comparison = require('../models/Comparison');
 const { isValidGemUrl } = require('../services/gemParser');
-const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
-
-// Apply auth middleware — user must be logged in
-router.use(authenticate);
 
 router.post('/', async (req, res) => {
   const { gemUrl, gemProduct: clientProduct, pinCode } = req.body;
@@ -168,7 +164,6 @@ router.post('/', async (req, res) => {
     // 5. Save Comparison Record
     const comparison = new Comparison({
       gemProductId: gemProduct._id,
-      requestedBy: req.user._id,
       pinCode: pinCode || '110001',
       matches: flatMatches,
       benchmarkMarketValue: bmv,

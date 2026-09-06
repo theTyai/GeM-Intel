@@ -14,14 +14,6 @@
     return url.includes('/p-') && url.includes('-cat.html');
   }
 
-  function getAuthToken() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(['gem_intel_token'], (result) => {
-        resolve(result.gem_intel_token || null);
-      });
-    });
-  }
-
   // ─── DOM Scraper ───────────────────────────────────────────
   function scrapeProductFromDOM() {
     const product = {
@@ -143,13 +135,10 @@
 
   // ─── API Calls ─────────────────────────────────────────────
   async function runComparison(product, pinCode) {
-    const token = await getAuthToken();
-
     const res = await fetch(`${API_BASE}/compare`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify({ gemProduct: product, pinCode }),
     });
@@ -316,7 +305,7 @@
       displayResults(data, product);
     } catch (err) {
       errorEl.style.display = '';
-      document.getElementById('gi-error-text').textContent = err.message || 'Failed to analyze. Check if you are logged in via the extension popup.';
+      document.getElementById('gi-error-text').textContent = err.message || 'Failed to analyze.';
     } finally {
       loading.style.display = 'none';
       auditBtn.disabled = false;
