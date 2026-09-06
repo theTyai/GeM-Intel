@@ -1,10 +1,9 @@
 const express = require('express');
-const { authenticate, authorize } = require('../middleware/auth');
 const Comparison = require('../models/Comparison');
 
 const router = express.Router();
 
-router.get('/', authenticate, authorize('officer', 'auditor'), async (req, res) => {
+router.get('/', async (req, res) => {
   const { status, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
   const filter = {};
   if (status) filter.status = status;
@@ -16,7 +15,6 @@ router.get('/', authenticate, authorize('officer', 'auditor'), async (req, res) 
 
   const comparisons = await Comparison.find(filter)
     .populate('gemProductId', 'title brand')
-    .populate('requestedBy', 'name department')
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(Number(limit));
@@ -34,10 +32,9 @@ router.get('/', authenticate, authorize('officer', 'auditor'), async (req, res) 
   });
 });
 
-router.get('/:id', authenticate, authorize('officer', 'auditor'), async (req, res) => {
+router.get('/:id', async (req, res) => {
   const comparison = await Comparison.findById(req.params.id)
-    .populate('gemProductId')
-    .populate('requestedBy', 'name department email');
+    .populate('gemProductId');
   if (!comparison) {
     return res.status(404).json({ error: 'Comparison not found' });
   }
@@ -45,3 +42,4 @@ router.get('/:id', authenticate, authorize('officer', 'auditor'), async (req, re
 });
 
 module.exports = router;
+

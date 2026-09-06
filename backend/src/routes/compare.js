@@ -1,6 +1,5 @@
 const express = require('express');
 const axios = require('axios');
-const { authenticate, authorize } = require('../middleware/auth');
 const GemProduct = require('../models/GemProduct');
 const Comparison = require('../models/Comparison');
 const { isValidGemUrl } = require('../services/gemParser');
@@ -8,10 +7,10 @@ const { isValidGemUrl } = require('../services/gemParser');
 const router = express.Router();
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
-router.post('/', authenticate, authorize('officer', 'admin'), async (req, res) => {
+router.post('/', async (req, res) => {
   const { gemUrl, pinCode } = req.body;
-  if (!gemUrl || !pinCode) {
-    return res.status(400).json({ error: 'gemUrl and pinCode are required' });
+  if (!gemUrl) {
+    return res.status(400).json({ error: 'gemUrl is required' });
   }
 
   // Validate URL (or allow all in dev)
@@ -145,7 +144,6 @@ router.post('/', authenticate, authorize('officer', 'admin'), async (req, res) =
     // 5. Save Comparison Record
     const comparison = new Comparison({
       gemProductId: gemProduct._id,
-      requestedBy: req.user._id,
       pinCode,
       matches: flatMatches,
       benchmarkMarketValue: bmv,
@@ -174,10 +172,9 @@ router.post('/', authenticate, authorize('officer', 'admin'), async (req, res) =
   }
 });
 
-router.get('/:jobId', authenticate, async (req, res) => {
+router.get('/:jobId', async (req, res) => {
   const comparison = await Comparison.findById(req.params.jobId)
-    .populate('gemProductId')
-    .populate('requestedBy', 'name email department');
+    .populate('gemProductId');
   if (!comparison) {
     return res.status(404).json({ error: 'Comparison record not found' });
   }

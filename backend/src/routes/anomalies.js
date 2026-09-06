@@ -1,10 +1,9 @@
 const express = require('express');
-const { authenticate, authorize } = require('../middleware/auth');
 const Comparison = require('../models/Comparison');
 
 const router = express.Router();
 
-router.get('/', authenticate, authorize('auditor', 'admin'), async (req, res) => {
+router.get('/', async (req, res) => {
   const anomalies = await Comparison.find({
     status: {
       $in: [
@@ -16,10 +15,10 @@ router.get('/', authenticate, authorize('auditor', 'admin'), async (req, res) =>
     },
   })
     .populate('gemProductId')
-    .populate('requestedBy', 'name department email')
     .sort({ createdAt: -1 });
 
   res.json(anomalies);
 });
 
 module.exports = router;
+

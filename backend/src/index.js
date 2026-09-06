@@ -7,7 +7,6 @@ const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 
 // Import routes
-const authRoutes = require('./routes/auth');
 const compareRoutes = require('./routes/compare');
 const productsRoutes = require('./routes/products');
 const comparisonsRoutes = require('./routes/comparisons');
@@ -32,7 +31,6 @@ apiRouter.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'gem-intel-backend' });
 });
 
-apiRouter.use('/auth', authRoutes);
 apiRouter.use('/compare', compareRoutes);
 apiRouter.use('/products', productsRoutes);
 apiRouter.use('/comparisons', comparisonsRoutes);
